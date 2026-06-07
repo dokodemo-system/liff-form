@@ -28,9 +28,16 @@
     h2 {
       text-align: center;
       color: #d87093;
-      margin: 0 0 25px;
+      margin: 0 0 15px;
       font-size: 24px;
       letter-spacing: 0.1em;
+    }
+    #name {
+      text-align: center;
+      color: #8b6f8b;
+      font-size: 16px;
+      margin-bottom: 20px;
+      font-weight: 600;
     }
     .card {
       background: linear-gradient(135deg, #fff9fc 0%, #fff5e6 100%);
@@ -73,6 +80,7 @@
 <body>
   <div class="container">
     <h2>✿ マイカルテ ✿</h2>
+    <div id="name"></div>
     <div id="loading">読み込み中...</div>
     <div id="list"></div>
   </div>
@@ -92,6 +100,7 @@
         
         const profile = await liff.getProfile();
         const userId = profile.userId;
+        document.getElementById("name").textContent = profile.displayName + " 様";
         
         const res = await fetch(GAS_URL + "?action=getKarte&userId=" + userId);
         const data = await res.json();
