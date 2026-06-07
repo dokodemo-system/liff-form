@@ -1,16 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>顧客登録</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施術記録</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; margin-top: 5px; }
+    button { width: 100%; padding: 15px; font-size: 18px; background: #06c755; color: white; border: none; border-radius: 5px; margin-top: 20px; }
+    button:disabled { background: #ccc; }
+    .required::after { content: " *"; color: red; }
+    #status { margin-top: 15px; text-align: center; }
+  </style>
 </head>
 <body>
-  <p id="status">読み込み中...</p>
+  <h2>施術記録</h2>
+  <div id="loading">読み込み中...</div>
+  
+  <div id="form" style="display:none;">
+    <label class="required">施術日</label>
+    <input type="date" id="date" required>
+    
+    <label class="required">施術内容</label>
+    <select id="menu" required>
+      <option value="">選択してください</option>
+    </select>
+    
+    <label>感想</label>
+    <textarea id="comment" rows="4"></textarea>
+    
+    <button id="submit" onclick="submit()">送信</button>
+    <p id="status"></p>
+  </div>
+  
   <script>
     const LIFF_ID = "2010311436-J8hmoIjg";
-    const FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSe2czICE3Sccuf1ju-nuvC0RtPBRdEsH3IkMT7cjulOaOjarw/viewform";
-    const ENTRY_ID = "entry.293310303";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzuHhCk-GWd78NW_m-KdsFve-6KxLETUCs_TbLhPzHblu2vxyyE7kWaawYDw80tabbuOA/exec";
+    let userId = "";
     
     async function main() {
       try {
@@ -22,10 +50,54 @@
         }
         
         const profile = await liff.getProfile();
-        const url = FORM_BASE + "?usp=pp_url&" + ENTRY_ID + "=" + profile.userId;
-        location.href = url;
+        userId = profile.userId;
+        
+        const res = await fetch(GAS_URL + "?action=getMenu");
+        const menus = await res.json();
+        
+        const select = document.getElementById("menu");
+        menus.forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          select.appendChild(opt);
+        });
+        
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("form").style.display = "block";
+      } catch (error) {
+        document.getElementById("loading").textContent = "エラー: " + error.message;
+      }
+    }
+    
+    async function submit() {
+      const date = document.getElementById("date").value;
+      const menu = document.getElementById("menu").value;
+      const comment = document.getElementById("comment").value;
+      
+      if (!date || !menu) {
+        alert("施術日と施術内容は必須です");
+        return;
+      }
+      
+      document.getElementById("submit").disabled = true;
+      document.getElementById("status").textContent = "送信中...";
+      
+      const params = new URLSearchParams({
+        action: "save",
+        userId: userId,
+        date: date,
+        menu: menu,
+        comment: comment
+      });
+      
+      try {
+        await fetch(GAS_URL + "?" + params.toString());
+        document.getElementById("status").textContent = "送信完了！";
+        setTimeout(() => liff.closeWindow(), 1500);
       } catch (error) {
         document.getElementById("status").textContent = "エラー: " + error.message;
+        document.getElementById("submit").disabled = false;
       }
     }
     
