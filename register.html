@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>新規登録</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: linear-gradient(135deg, #ffe6f0 0%, #fff5e6 50%, #e6f7ff 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+    }
+    h2 {
+      text-align: center;
+      color: #d87093;
+      margin: 0 0 25px;
+      font-size: 24px;
+      letter-spacing: 0.1em;
+    }
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #8b6f8b;
+      font-size: 14px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid #ffd6e8;
+      border-radius: 16px;
+      background: #fff9fc;
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      border-color: #ff9ec1;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.2);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #ff9ec1 0%, #ffb380 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      margin-top: 28px;
+      box-shadow: 0 6px 16px rgba(255, 158, 193, 0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.1em;
+    }
+    button:active { transform: translateY(1px); box-shadow: 0 3px 8px rgba(255, 158, 193, 0.4); }
+    button:disabled { background: #e0e0e0; box-shadow: none; color: #999; }
+    .required::after { content: " ✦"; color: #ff9ec1; font-size: 12px; }
+    #status {
+      margin-top: 15px;
+      text-align: center;
+      color: #d87093;
+      font-weight: 600;
+    }
+    #loading {
+      text-align: center;
+      color: #b89eb8;
+      padding: 40px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>✿ 新規登録 ✿</h2>
+    <div id="loading">読み込み中...</div>
+    
+    <div id="form" style="display:none;">
+      <label class="required">氏名</label>
+      <input type="text" id="name" required placeholder="山田 花子">
+      
+      <label class="required">ふりがな</label>
+      <input type="text" id="kana" required placeholder="やまだ はなこ">
+      
+      <label class="required">誕生日</label>
+      <input type="date" id="birthday" required>
+      
+      <label class="required">住所</label>
+      <textarea id="address" required placeholder="〒000-0000 〇〇県〇〇市..."></textarea>
+      
+      <button id="submit" onclick="submit()">登録する</button>
+      <p id="status"></p>
+    </div>
+  </div>
+  
+  <script>
+    const LIFF_ID = "ここに新規登録用のLIFF_IDを入れる";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzuHhCk-GWd78NW_m-KdsFve-6KxLETUCs_TbLhPzHblu2vxyyE7kWaawYDw80tabbuOA/exec";
+    let userId = "";
+    
+    async function main() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("form").style.display = "block";
+      } catch (error) {
+        document.getElementById("loading").textContent = "エラー: " + error.message;
+      }
+    }
+    
+    async function submit() {
+      const name = document.getElementById("name").value;
+      const kana = document.getElementById("kana").value;
+      const birthday = document.getElementById("birthday").value;
+      const address = document.getElementById("address").value;
+      
+      if (!name || !kana || !birthday || !address) {
+        alert("すべての項目を入力してください");
+        return;
+      }
+      
+      document.getElementById("submit").disabled = true;
+      document.getElementById("status").textContent = "送信中...";
+      
+      const params = new URLSearchParams({
+        action: "register",
+        userId: userId,
+        name: name,
+        kana: kana,
+        birthday: birthday,
+        address: address
+      });
+      
+      try {
+        await fetch(GAS_URL + "?" + params.toString());
+        document.getElementById("status").textContent = "✿ 登録完了しました ✿";
+        setTimeout(() => liff.closeWindow(), 1500);
+      } catch (error) {
+        document.getElementById("status").textContent = "エラー: " + error.message;
+        document.getElementById("submit").disabled = false;
+      }
+    }
+    
+    main();
+  </script>
+</body>
+</html>
