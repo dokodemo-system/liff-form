@@ -9,33 +9,121 @@
   <title>施術記録</title>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; }
-    label { display: block; margin-top: 15px; font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; margin-top: 5px; -webkit-appearance: none; appearance: none; background: white; border: 1px solid #ccc; border-radius: 5px; }
-    button { width: 100%; padding: 15px; font-size: 18px; background: #06c755; color: white; border: none; border-radius: 5px; margin-top: 20px; }
-    button:disabled { background: #ccc; }
-    .required::after { content: " *"; color: red; }
-    #status { margin-top: 15px; text-align: center; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+      background: linear-gradient(135deg, #ffe6f0 0%, #fff5e6 50%, #e6f7ff 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      padding: 30px 25px;
+      box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3);
+    }
+    h2 {
+      text-align: center;
+      color: #d87093;
+      margin: 0 0 25px;
+      font-size: 24px;
+      letter-spacing: 0.1em;
+    }
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #8b6f8b;
+      font-size: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 2px solid #ffd6e8;
+      border-radius: 16px;
+      background: #fff9fc;
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #ff9ec1;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(255, 182, 193, 0.2);
+    }
+    select {
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23d87093' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      padding-right: 40px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #ff9ec1 0%, #ffb380 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      margin-top: 28px;
+      box-shadow: 0 6px 16px rgba(255, 158, 193, 0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.1em;
+    }
+    button:active { transform: translateY(1px); box-shadow: 0 3px 8px rgba(255, 158, 193, 0.4); }
+    button:disabled {
+      background: #e0e0e0;
+      box-shadow: none;
+      color: #999;
+    }
+    .required::after { content: " ✦"; color: #ff9ec1; font-size: 12px; }
+    #status {
+      margin-top: 15px;
+      text-align: center;
+      color: #d87093;
+      font-weight: 600;
+    }
+    #loading {
+      text-align: center;
+      color: #b89eb8;
+      padding: 40px 0;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <h2>施術記録</h2>
-  <div id="loading">読み込み中...</div>
-  
-  <div id="form" style="display:none;">
-    <label class="required">施術日</label>
-    <input type="date" id="date" required>
+  <div class="container">
+    <h2>✿ 施術記録 ✿</h2>
+    <div id="loading">読み込み中...</div>
     
-    <label class="required">施術内容</label>
-    <select id="menu" required>
-      <option value="">選択してください</option>
-    </select>
-    
-    <label>感想</label>
-    <textarea id="comment" rows="4"></textarea>
-    
-    <button id="submit" onclick="submit()">送信</button>
-    <p id="status"></p>
+    <div id="form" style="display:none;">
+      <label class="required">施術日</label>
+      <input type="date" id="date" required>
+      
+      <label class="required">施術内容</label>
+      <select id="menu" required>
+        <option value="">選択してください</option>
+      </select>
+      
+      <label>感想</label>
+      <textarea id="comment" rows="4" placeholder="ご自由にお書きください"></textarea>
+      
+      <button id="submit" onclick="submit()">送信する</button>
+      <p id="status"></p>
+    </div>
   </div>
   
   <script>
@@ -97,7 +185,7 @@
       
       try {
         await fetch(GAS_URL + "?" + params.toString());
-        document.getElementById("status").textContent = "送信完了！";
+        document.getElementById("status").textContent = "✿ 送信完了しました ✿";
         setTimeout(() => liff.closeWindow(), 1500);
       } catch (error) {
         document.getElementById("status").textContent = "エラー: " + error.message;
